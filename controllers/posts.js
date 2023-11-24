@@ -36,6 +36,10 @@ const slugify = require('slugify');
           where,
           take: parseInt(limit),
           skip: offset,
+          include:{
+            category: true,
+            tags: true,
+          },
         });
     
         res.json({
@@ -61,6 +65,10 @@ const slugify = require('slugify');
           where: {
             slug: slugify(slug, { lower: true, replacement: '-' }),
           },
+          include:{
+            category: true,
+            tags: true,
+          },
         });
 
         // Se il post non esiste, lancio un errore
@@ -74,17 +82,48 @@ const slugify = require('slugify');
 
 
 async function store(req, res) {
-  // Genero uno slug utilizzando la libreria slugify
-  const slug = slugify(req.body.title, { lower: true, replacement: '-' });
+const datiIngresso = req.body
 
+  // Genero uno slug utilizzando la libreria slugify
+  const slug = slugify(datiIngresso.title, { lower: true, replacement: '-' });
   // Creo un nuovo post utilizzando i dati dalla richiesta
   const newPost = await prisma.post.create({
     data: {
-      title: req.body.title,
+      title: datiIngresso.title,
       slug: slug,
-      image: req.body.image,
-      content: req.body.content,
-      published: req.body.published,
+      image: datiIngresso.image,
+      content: datiIngresso.content,
+      published: datiIngresso.published,
+      category: {
+        // si aspetta come valore un array di oggetti con la chiave id
+        // [{id: 1}, {id: 2}, ....]
+        connect: datiIngresso.category.map((idCategory) => ({
+          id: idCategory,
+        })),
+      },
+      tags: {
+        // si aspetta come valore un array di oggetti con la chiave id
+        // [{id: 1}, {id: 2}, ....]
+        connect: datiIngresso.tags.map((idTag) => ({
+          id: idTag,
+        })),
+      },
+    },
+      include: {
+    
+      category: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      tags: {
+        select: {
+          id: true,
+          name: true,
+          slug:true
+        },
+      },
     },
     // skipDuplicates: true,
   });
