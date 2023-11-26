@@ -4,8 +4,9 @@ const slugify = require('slugify');
 
 
 async function index(req, res){
-  const category = await prisma.category.findMany();
-  res.json(category);
+const category = await prisma.category.findMany();
+res.json(category)
+
 }
 
 async function store(req, res) {

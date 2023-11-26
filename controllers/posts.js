@@ -36,10 +36,10 @@ const slugify = require('slugify');
           where,
           take: parseInt(limit),
           skip: offset,
-          include:{
-            category: true,
-            tags: true,
-          },
+          // include:{
+          //   // category: true,
+          //   tags: true,
+          // },
         });
     
         res.json({
@@ -65,10 +65,10 @@ const slugify = require('slugify');
           where: {
             slug: slugify(slug, { lower: true, replacement: '-' }),
           },
-          include:{
-            category: true,
-            tags: true,
-          },
+          // include:{
+         
+          //   tags: true,
+          // },
         });
 
         // Se il post non esiste, lancio un errore
@@ -81,56 +81,46 @@ const slugify = require('slugify');
       }
 
 
-async function store(req, res) {
-const datiIngresso = req.body
+      async function store(req, res) {
+        const datiIngresso = req.body;
+        let createSlug; // Dichiarato fuori dal blocco if
+      
+        // Genero uno slug utilizzando la libreria slugify
+        if (datiIngresso.title || req.body.name) {
+          createSlug = slugify(datiIngresso.title || req.body.name, { lower: true, replacement: '-' });
+        }
+      
+        // Creo un nuovo post utilizzando i dati dalla richiesta
+        const newPost = await prisma.post.create({
+          data: {
+            title: datiIngresso.title,
+            slug: createSlug,
+            image: datiIngresso.image,
+            content: datiIngresso.content,
+            published: datiIngresso.published,
+            category: {
+              create: {
+                name: datiIngresso.name,
+                slug: createSlug,
+              },
+            },
+            tags: {
+              connect: datiIngresso.tags.map((idTag) => ({ id: idTag })),
+            },
+          },
+          include: {
+            category: true,
+            tags: true,
+          },
+        });
+      
+        // Ritorno il nuovo post come risposta JSON
+        res.json(newPost);
+      }
+      
+      
 
-  // Genero uno slug utilizzando la libreria slugify
-  const slug = slugify(datiIngresso.title, { lower: true, replacement: '-' });
-  // Creo un nuovo post utilizzando i dati dalla richiesta
-  const newPost = await prisma.post.create({
-    data: {
-      title: datiIngresso.title,
-      slug: slug,
-      image: datiIngresso.image,
-      content: datiIngresso.content,
-      published: datiIngresso.published,
-      category: {
-        // si aspetta come valore un array di oggetti con la chiave id
-        // [{id: 1}, {id: 2}, ....]
-        connect: datiIngresso.category.map((idCategory) => ({
-          id: idCategory,
-        })),
-      },
-      tags: {
-        // si aspetta come valore un array di oggetti con la chiave id
-        // [{id: 1}, {id: 2}, ....]
-        connect: datiIngresso.tags.map((idTag) => ({
-          id: idTag,
-        })),
-      },
-    },
-      include: {
-    
-      category: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      tags: {
-        select: {
-          id: true,
-          name: true,
-          slug:true
-        },
-      },
-    },
-    // skipDuplicates: true,
-  });
-
-  // Ritorno il nuovo post come risposta JSON
-  res.json(newPost);
-}
+      
 
 
 async function update(req, res) {

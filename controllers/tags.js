@@ -8,9 +8,12 @@ async function index(req, res){
 }
 
 async function store(req, res) {
+  const dataIngresso = req.body
   // Creo un nuovo post utilizzando i dati dalla richiesta
   const newTag = await prisma.tag.create({
-    data: req.body
+    data: {
+      name: dataIngresso.name
+    }
   });
 
   
