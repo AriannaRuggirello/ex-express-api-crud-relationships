@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const postsController=require('../controllers/posts');
+const validateSchema = require('../middlewares/validateSchema');
+const postValidationSchema = require('../validation/postValidationSchema');
 
 
 // // definizione rotte
 // //GET /posts per recuperare tutti i post presenti nel database, con la possibilità di filtrare per:
-router.get('/', postsController.index);
+router.get('/', validateSchema(postValidationSchema),postsController.index);
 
 //GET /posts/:slug per recuperare un post utilizzando il suo slug.
 router.get('/:slug', postsController.show);

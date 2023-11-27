@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient;
 const slugify = require('slugify');
-
+const {validationResult}= require('express-validator');
 
 async function index(req, res){
 const category = await prisma.category.findMany();
